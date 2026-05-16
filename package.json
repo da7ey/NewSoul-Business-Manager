@@ -1,0 +1,31 @@
+{
+  "name": "business-manager-supabase",
+  "version": "1.0.0",
+  "description": "تطبيق إدارة أعمال متكامل مع Supabase",
+  "main": "src/index.jsx",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "npm run dev"
+  },
+  "keywords": [
+    "business",
+    "management",
+    "supabase",
+    "react",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@supabase/supabase-js": "^2.38.0",
+    "recharts": "^2.10.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.1.0",
+    "vite": "^5.0.0"
+  }
+}

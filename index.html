@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدير الأعمال - Supabase Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/+esm"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #7B68EE;
+            --primary-dark: #5B4FC4;
+            --primary-light: #E8E4FC;
+            --primary-gradient: linear-gradient(135deg, #7B68EE 0%, #9B8AF7 100%);
+            --secondary: #F8F9FA;
+            --success: #28A745;
+            --danger: #DC3545;
+            --warning: #FD7E14;
+            --info: #17A2B8;
+            --dark: #1A1A2E;
+            --gray: #6C757D;
+            --light-gray: #E9ECEF;
+            --white: #FFFFFF;
+            --shadow-sm: 0 2px 8px rgba(123, 104, 238, 0.1);
+            --shadow-md: 0 4px 20px rgba(123, 104, 238, 0.15);
+            --shadow-lg: 0 10px 40px rgba(123, 104, 238, 0.2);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html, body {
+            overflow-x: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 50%, #F0EEFC 100%);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .login-screen.hidden {
+            display: none !important;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--radius);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: loginSlide 0.5s ease;
+        }
+
+        @keyframes loginSlide {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 30px;
+        }
+
+        .login-input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 14px 45px 14px 14px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 15px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            background: var(--white);
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .login-input-icon {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 16px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-gradient);
+            color: var(--white);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 12px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(123, 104, 238, 0.4);
+        }
+
+        .login-btn-secondary {
+            width: 100%;
+            padding: 14px;
+            background: var(--white);
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .login-btn-secondary:hover {
+            background: var(--primary-light);
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: var(--white);
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            transition: var(--transition);
+            overflow-y: auto;
+            border-left: 1px solid var(--primary-light);
+        }
+
+        .sidebar-header {
+            padding: 20px 16px;
+            text-align: center;
+            border-bottom: 2px solid var(--primary-light);
+            background: var(--primary-gradient);
+            color: var(--white);
+        }
+
+        .sidebar-header h2 {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-header p {
+            font-size: 11px;
+            opacity: 0.9;
+        }
+
+        .nav-menu {
+            padding: 16px 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            margin-bottom: 4px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--gray);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            font-size: 14px;
+            border-right: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+
+        .nav-item.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-weight: 700;
+            border-right-color: var(--primary);
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            width: 22px;
+            text-align: center;
+        }
+
+        .nav-item.logout {
+            margin-top: 20px;
+            color: var(--danger);
+        }
+
+        .main-content {
+            margin-right: 260px;
+            padding: 20px 28px;
+            transition: var(--transition);
+            min-height: 100vh;
+            max-width: calc(100vw - 260px);
+            overflow-y: auto;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding: 14px 20px;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .page-title i {
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(123, 104, 238, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(123, 104, 238, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: var(--white);
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .card-icon.primary {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .card-icon.success {
+            background: #D4EDDA;
+            color: var(--success);
+        }
+
+        .card-icon.danger {
+            background: #F8D7DA;
+            color: var(--danger);
+        }
+
+        .card-icon.warning {
+            background: #FFF3CD;
+            color: var(--warning);
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: var(--gray);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .card-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .table-container {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 14px;
+            text-align: right;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .table td {
+            padding: 14px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .table tbody tr:hover {
+            background: var(--secondary);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .status-active {
+            background: #D4EDDA;
+            color: var(--success);
+        }
+
+        .status-pending {
+            background: #FFF3CD;
+            color: var(--warning);
+        }
+
+        .status-completed {
+            background: #D1ECF1;
+            color: var(--info);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.hidden {
+            display: none !important;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 2px solid var(--primary-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .modal-close:hover {
+            color: var(--dark);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--light-gray);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-error {
+            background: #F8D7DA;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+
+        .alert-success {
+            background: #D4EDDA;
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                right: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 999;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-right: 0;
+                max-width: 100vw;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .modal {
+                width: 95%;
+                max-height: 95vh;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/+esm';
+
+        // ========== SUPABASE CONFIG ==========
+        // ⚠️ استبدل هذه بـ Supabase credentials الحقيقية
+        const SUPABASE_URL = 'https://your-project.supabase.co';
+        const SUPABASE_KEY = 'your-anon-key';
+        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // ========== APPLICATION STATE ==========
+        let currentUser = null;
+        let currentPage = 'dashboard';
+        let clients = [];
+        let projects = [];
+        let invoices = [];
+        let quotations = [];
+        let editingClient = null;
+        let editingProject = null;
+        let editingInvoice = null;
+        let editingQuotation = null;
+
+        // ========== FORM DATA ==========
+        const clientForm = {
+            name: '',
+            email: '',
+            phone: '',
+            address: ''
+        };
+
+        const projectForm = {
+            name: '',
+            clientId: '',
+            status: 'نشط',
+            budget: '',
+            description: ''
+        };
+
+        const invoiceForm = {
+            projectId: '',
+            amount: '',
+            status: 'معلق',
+            dueDate: '',
+            notes: ''
+        };
+
+        const quotationForm = {
+            clientId: '',
+            description: '',
+            amount: '',
+            expiryDate: '',
+            notes: ''
+        };
+
+        // ========== UI FUNCTIONS ==========
+        function showPage(page) {
+            currentPage = page;
+            render();
+        }
+
+        function showAlert(message, type = 'error') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i>
+                <span>${message}</span>
+            `;
+            const container = document.querySelector('.main-content');
+            if (container) {
+                container.insertBefore(alertDiv, container.firstChild);
+                setTimeout(() => alertDiv.remove(), 3000);
+            }
+        }
+
+        function openModal(modalName) {
+            const modal = document.getElementById(modalName);
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeModal(modalName) {
+            const modal = document.getElementById(modalName);
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // ========== AUTHENTICATION ==========
+        async function handleLogin(email, password) {
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                currentUser = data.user;
+                await fetchAllData();
+                render();
+                showAlert('تم تسجيل الدخول بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function handleRegister(email, password) {
+            try {
+                const { data, error } = await supabase.auth.signUp({ email, password });
+                if (error) throw error;
+                showAlert('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function handleLogout() {
+            await supabase.auth.signOut();
+            currentUser = null;
+            render();
+        }
+
+        // ========== DATA FETCHING ==========
+        async function fetchAllData() {
+            if (!currentUser) return;
+            await Promise.all([
+                fetchClients(),
+                fetchProjects(),
+                fetchInvoices(),
+                fetchQuotations()
+            ]);
+        }
+
+        async function fetchClients() {
+            try {
+                const { data, error } = await supabase
+                    .from('clients')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+                if (error) throw error;
+                clients = data || [];
+            } catch (error) {
+                console.error('خطأ في جلب العملاء:', error);
+            }
+        }
+
+        async function fetchProjects() {
+            try {
+                const { data, error } = await supabase
+                    .from('projects')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+                if (error) throw error;
+                projects = data || [];
+            } catch (error) {
+                console.error('خطأ في جلب المشاريع:', error);
+            }
+        }
+
+        async function fetchInvoices() {
+            try {
+                const { data, error } = await supabase
+                    .from('invoices')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+                if (error) throw error;
+                invoices = data || [];
+            } catch (error) {
+                console.error('خطأ في جلب الفواتير:', error);
+            }
+        }
+
+        async function fetchQuotations() {
+            try {
+                const { data, error } = await supabase
+                    .from('quotations')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+                if (error) throw error;
+                quotations = data || [];
+            } catch (error) {
+                console.error('خطأ في جلب عروض الأسعار:', error);
+            }
+        }
+
+        // ========== CLIENT OPERATIONS ==========
+        async function saveClient() {
+            if (!clientForm.name) return showAlert('الرجاء إدخال اسم العميل', 'error');
+            try {
+                if (editingClient) {
+                    const { error } = await supabase
+                        .from('clients')
+                        .update(clientForm)
+                        .eq('id', editingClient.id);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabase
+                        .from('clients')
+                        .insert([{ ...clientForm, user_id: currentUser.id }]);
+                    if (error) throw error;
+                }
+                Object.assign(clientForm, { name: '', email: '', phone: '', address: '' });
+                editingClient = null;
+                closeModal('clientModal');
+                await fetchClients();
+                render();
+                showAlert('تم الحفظ بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function deleteClient(id) {
+            if (!confirm('هل أنت متأكد؟')) return;
+            try {
+                const { error } = await supabase.from('clients').delete().eq('id', id);
+                if (error) throw error;
+                await fetchClients();
+                render();
+                showAlert('تم الحذف بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        function editClientData(client) {
+            Object.assign(clientForm, client);
+            editingClient = client;
+            openModal('clientModal');
+        }
+
+        // ========== PROJECT OPERATIONS ==========
+        async function saveProject() {
+            if (!projectForm.name) return showAlert('الرجاء إدخال اسم المشروع', 'error');
+            try {
+                if (editingProject) {
+                    const { error } = await supabase
+                        .from('projects')
+                        .update(projectForm)
+                        .eq('id', editingProject.id);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabase
+                        .from('projects')
+                        .insert([{ ...projectForm, user_id: currentUser.id }]);
+                    if (error) throw error;
+                }
+                Object.assign(projectForm, { name: '', clientId: '', status: 'نشط', budget: '', description: '' });
+                editingProject = null;
+                closeModal('projectModal');
+                await fetchProjects();
+                render();
+                showAlert('تم الحفظ بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function deleteProject(id) {
+            if (!confirm('هل أنت متأكد؟')) return;
+            try {
+                const { error } = await supabase.from('projects').delete().eq('id', id);
+                if (error) throw error;
+                await fetchProjects();
+                render();
+                showAlert('تم الحذف بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        function editProjectData(project) {
+            Object.assign(projectForm, project);
+            editingProject = project;
+            openModal('projectModal');
+        }
+
+        // ========== INVOICE OPERATIONS ==========
+        async function saveInvoice() {
+            if (!invoiceForm.projectId || !invoiceForm.amount) return showAlert('الرجاء ملء البيانات المطلوبة', 'error');
+            try {
+                if (editingInvoice) {
+                    const { error } = await supabase
+                        .from('invoices')
+                        .update(invoiceForm)
+                        .eq('id', editingInvoice.id);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabase
+                        .from('invoices')
+                        .insert([{ ...invoiceForm, user_id: currentUser.id }]);
+                    if (error) throw error;
+                }
+                Object.assign(invoiceForm, { projectId: '', amount: '', status: 'معلق', dueDate: '', notes: '' });
+                editingInvoice = null;
+                closeModal('invoiceModal');
+                await fetchInvoices();
+                render();
+                showAlert('تم الحفظ بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function deleteInvoice(id) {
+            if (!confirm('هل أنت متأكد؟')) return;
+            try {
+                const { error } = await supabase.from('invoices').delete().eq('id', id);
+                if (error) throw error;
+                await fetchInvoices();
+                render();
+                showAlert('تم الحذف بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        function editInvoiceData(invoice) {
+            Object.assign(invoiceForm, invoice);
+            editingInvoice = invoice;
+            openModal('invoiceModal');
+        }
+
+        // ========== QUOTATION OPERATIONS ==========
+        async function saveQuotation() {
+            if (!quotationForm.clientId || !quotationForm.amount) return showAlert('الرجاء ملء البيانات المطلوبة', 'error');
+            try {
+                if (editingQuotation) {
+                    const { error } = await supabase
+                        .from('quotations')
+                        .update(quotationForm)
+                        .eq('id', editingQuotation.id);
+                    if (error) throw error;
+                } else {
+                    const { error } = await supabase
+                        .from('quotations')
+                        .insert([{ ...quotationForm, user_id: currentUser.id }]);
+                    if (error) throw error;
+                }
+                Object.assign(quotationForm, { clientId: '', description: '', amount: '', expiryDate: '', notes: '' });
+                editingQuotation = null;
+                closeModal('quotationModal');
+                await fetchQuotations();
+                render();
+                showAlert('تم الحفظ بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function deleteQuotation(id) {
+            if (!confirm('هل أنت متأكد؟')) return;
+            try {
+                const { error } = await supabase.from('quotations').delete().eq('id', id);
+                if (error) throw error;
+                await fetchQuotations();
+                render();
+                showAlert('تم الحذف بنجاح!', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        function editQuotationData(quotation) {
+            Object.assign(quotationForm, quotation);
+            editingQuotation = quotation;
+            openModal('quotationModal');
+        }
+
+        // ========== RENDER FUNCTION ==========
+        function render() {
+            const app = document.getElementById('app');
+
+            if (!currentUser) {
+                // LOGIN PAGE
+                app.innerHTML = `
+                    <div class="login-screen">
+                        <div class="login-box">
+                            <div style="font-size: 48px; margin-bottom: 20px;">💼</div>
+                            <h1 class="login-title">مدير الأعمال</h1>
+                            <p class="login-subtitle">نظام الإدارة المتكامل مع Supabase</p>
+                            
+                            <div class="login-input-group">
+                                <input type="email" class="login-input" id="loginEmail" placeholder="البريد الإلكتروني" />
+                                <i class="fas fa-envelope login-input-icon"></i>
+                            </div>
+
+                            <div class="login-input-group">
+                                <input type="password" class="login-input" id="loginPassword" placeholder="كلمة المرور" />
+                                <i class="fas fa-lock login-input-icon"></i>
+                            </div>
+
+                            <button class="login-btn" onclick="handleLogin(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value)">
+                                تسجيل الدخول
+                            </button>
+
+                            <button class="login-btn-secondary" onclick="handleRegister(document.getElementById('loginEmail').value, document.getElementById('loginPassword').value)">
+                                إنشاء حساب جديد
+                            </button>
+
+                            <p style="margin-top: 20px; font-size: 12px; color: var(--gray);">
+                                ⚠️ تأكد من تحديث Supabase credentials في الكود
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // MAIN APP
+                app.innerHTML = `
+                    <div class="app-container">
+                        <!-- SIDEBAR -->
+                        <aside class="sidebar">
+                            <div class="sidebar-header">
+                                <h2>💼 مدير الأعمال</h2>
+                                <p>نظام الإدارة المتكامل</p>
+                            </div>
+
+                            <nav class="nav-menu">
+                                <div class="nav-item ${currentPage === 'dashboard' ? 'active' : ''}" onclick="window.showPage('dashboard')">
+                                    <i class="fas fa-home"></i> لوحة التحكم
+                                </div>
+                                <div class="nav-item ${currentPage === 'clients' ? 'active' : ''}" onclick="window.showPage('clients')">
+                                    <i class="fas fa-users"></i> العملاء
+                                </div>
+                                <div class="nav-item ${currentPage === 'projects' ? 'active' : ''}" onclick="window.showPage('projects')">
+                                    <i class="fas fa-tasks"></i> المشاريع
+                                </div>
+                                <div class="nav-item ${currentPage === 'invoices' ? 'active' : ''}" onclick="window.showPage('invoices')">
+                                    <i class="fas fa-file-invoice"></i> الفواتير
+                                </div>
+                                <div class="nav-item ${currentPage === 'quotations' ? 'active' : ''}" onclick="window.showPage('quotations')">
+                                    <i class="fas fa-file-alt"></i> عروض الأسعار
+                                </div>
+                                <div class="nav-item logout" onclick="window.handleLogout()">
+                                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                                </div>
+                            </nav>
+                        </aside>
+
+                        <!-- MAIN CONTENT -->
+                        <main class="main-content">
+                            <div class="top-bar">
+                                <h1 class="page-title">
+                                    ${currentPage === 'dashboard' ? '📊 لوحة التحكم' : ''}
+                                    ${currentPage === 'clients' ? '👥 العملاء' : ''}
+                                    ${currentPage === 'projects' ? '📋 المشاريع' : ''}
+                                    ${currentPage === 'invoices' ? '💰 الفواتير' : ''}
+                                    ${currentPage === 'quotations' ? '📄 عروض الأسعار' : ''}
+                                </h1>
+                                <div class="top-actions">
+                                    ${currentPage === 'clients' ? '<button class="btn btn-primary" onclick="window.editClientData(null); window.openModal(\'clientModal\')"><i class="fas fa-plus"></i> عميل جديد</button>' : ''}
+                                    ${currentPage === 'projects' ? '<button class="btn btn-primary" onclick="window.editProjectData(null); window.openModal(\'projectModal\')"><i class="fas fa-plus"></i> مشروع جديد</button>' : ''}
+                                    ${currentPage === 'invoices' ? '<button class="btn btn-primary" onclick="window.editInvoiceData(null); window.openModal(\'invoiceModal\')"><i class="fas fa-plus"></i> فاتورة جديدة</button>' : ''}
+                                    ${currentPage === 'quotations' ? '<button class="btn btn-primary" onclick="window.editQuotationData(null); window.openModal(\'quotationModal\')"><i class="fas fa-plus"></i> عرض سعر جديد</button>' : ''}
+                                </div>
+                            </div>
+
+                            ${renderPageContent()}
+                        </main>
+                    </div>
+
+                    <!-- MODALS -->
+                    <div class="modal-overlay hidden" id="clientModal">
+                        <div class="modal">
+                            <div class="modal-header">
+                                <h3 class="modal-title">عميل جديد</h3>
+                                <button class="modal-close" onclick="window.closeModal('clientModal')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="form-label">الاسم *</label>
+                                    <input type="text" class="form-input" id="clientName" placeholder="اسم العميل" value="${clientForm.name}" onchange="window.clientForm.name = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">البريد الإلكتروني</label>
+                                    <input type="email" class="form-input" id="clientEmail" placeholder="البريد الإلكتروني" value="${clientForm.email}" onchange="window.clientForm.email = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">الهاتف</label>
+                                    <input type="tel" class="form-input" id="clientPhone" placeholder="رقم الهاتف" value="${clientForm.phone}" onchange="window.clientForm.phone = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">العنوان</label>
+                                    <input type="text" class="form-input" id="clientAddress" placeholder="العنوان" value="${clientForm.address}" onchange="window.clientForm.address = this.value" />
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-outline" onclick="window.closeModal('clientModal')">إلغاء</button>
+                                <button class="btn btn-primary" onclick="window.saveClient()">حفظ</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-overlay hidden" id="projectModal">
+                        <div class="modal">
+                            <div class="modal-header">
+                                <h3 class="modal-title">مشروع جديد</h3>
+                                <button class="modal-close" onclick="window.closeModal('projectModal')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="form-label">اسم المشروع *</label>
+                                    <input type="text" class="form-input" id="projectName" placeholder="اسم المشروع" value="${projectForm.name}" onchange="window.projectForm.name = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">العميل</label>
+                                    <select class="form-select" id="projectClient" value="${projectForm.clientId}" onchange="window.projectForm.clientId = this.value">
+                                        <option value="">اختر عميل</option>
+                                        ${clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">الحالة</label>
+                                    <select class="form-select" id="projectStatus" value="${projectForm.status}" onchange="window.projectForm.status = this.value">
+                                        <option value="نشط">نشط</option>
+                                        <option value="معلق">معلق</option>
+                                        <option value="مكتمل">مكتمل</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">الميزانية</label>
+                                    <input type="number" class="form-input" id="projectBudget" placeholder="الميزانية" value="${projectForm.budget}" onchange="window.projectForm.budget = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">الوصف</label>
+                                    <textarea class="form-textarea" id="projectDesc" placeholder="وصف المشروع" onchange="window.projectForm.description = this.value">${projectForm.description}</textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-outline" onclick="window.closeModal('projectModal')">إلغاء</button>
+                                <button class="btn btn-primary" onclick="window.saveProject()">حفظ</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-overlay hidden" id="invoiceModal">
+                        <div class="modal">
+                            <div class="modal-header">
+                                <h3 class="modal-title">فاتورة جديدة</h3>
+                                <button class="modal-close" onclick="window.closeModal('invoiceModal')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="form-label">المشروع *</label>
+                                    <select class="form-select" id="invoiceProject" value="${invoiceForm.projectId}" onchange="window.invoiceForm.projectId = this.value">
+                                        <option value="">اختر مشروع</option>
+                                        ${projects.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">المبلغ *</label>
+                                    <input type="number" class="form-input" id="invoiceAmount" placeholder="المبلغ" value="${invoiceForm.amount}" onchange="window.invoiceForm.amount = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">الحالة</label>
+                                    <select class="form-select" id="invoiceStatus" value="${invoiceForm.status}" onchange="window.invoiceForm.status = this.value">
+                                        <option value="معلق">معلق</option>
+                                        <option value="مدفوع">مدفوع</option>
+                                        <option value="متأخر">متأخر</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ الاستحقاق</label>
+                                    <input type="date" class="form-input" id="invoiceDue" value="${invoiceForm.dueDate}" onchange="window.invoiceForm.dueDate = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">ملاحظات</label>
+                                    <textarea class="form-textarea" id="invoiceNotes" placeholder="ملاحظات" onchange="window.invoiceForm.notes = this.value">${invoiceForm.notes}</textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-outline" onclick="window.closeModal('invoiceModal')">إلغاء</button>
+                                <button class="btn btn-primary" onclick="window.saveInvoice()">حفظ</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-overlay hidden" id="quotationModal">
+                        <div class="modal">
+                            <div class="modal-header">
+                                <h3 class="modal-title">عرض سعر جديد</h3>
+                                <button class="modal-close" onclick="window.closeModal('quotationModal')">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group">
+                                    <label class="form-label">العميل *</label>
+                                    <select class="form-select" id="quotationClient" value="${quotationForm.clientId}" onchange="window.quotationForm.clientId = this.value">
+                                        <option value="">اختر عميل</option>
+                                        ${clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">الوصف</label>
+                                    <textarea class="form-textarea" id="quotationDesc" placeholder="وصف الخدمة" onchange="window.quotationForm.description = this.value">${quotationForm.description}</textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">المبلغ *</label>
+                                    <input type="number" class="form-input" id="quotationAmount" placeholder="المبلغ" value="${quotationForm.amount}" onchange="window.quotationForm.amount = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ الانتهاء</label>
+                                    <input type="date" class="form-input" id="quotationExpiry" value="${quotationForm.expiryDate}" onchange="window.quotationForm.expiryDate = this.value" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">ملاحظات</label>
+                                    <textarea class="form-textarea" id="quotationNotes" placeholder="ملاحظات" onchange="window.quotationForm.notes = this.value">${quotationForm.notes}</textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-outline" onclick="window.closeModal('quotationModal')">إلغاء</button>
+                                <button class="btn btn-primary" onclick="window.saveQuotation()">حفظ</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderPageContent() {
+            if (currentPage === 'dashboard') {
+                return `
+                    <div class="cards-grid">
+                        <div class="card">
+                            <div class="card-icon primary"><i class="fas fa-users"></i></div>
+                            <div class="card-label">إجمالي العملاء</div>
+                            <div class="card-value">${clients.length}</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon success"><i class="fas fa-tasks"></i></div>
+                            <div class="card-label">المشاريع النشطة</div>
+                            <div class="card-value">${projects.filter(p => p.status === 'نشط').length}</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon danger"><i class="fas fa-file-invoice"></i></div>
+                            <div class="card-label">الفواتير المعلقة</div>
+                            <div class="card-value">${invoices.filter(i => i.status === 'معلق').length}</div>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon warning"><i class="fas fa-file-alt"></i></div>
+                            <div class="card-label">عروض الأسعار</div>
+                            <div class="card-value">${quotations.length}</div>
+                        </div>
+                    </div>
+                `;
+            } else if (currentPage === 'clients') {
+                if (clients.length === 0) {
+                    return `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">👥</div>
+                            <div class="empty-state-title">لا توجد عملاء بعد</div>
+                            <p style="margin-bottom: 20px;">أضف عميلك الأول لبدء الإدارة</p>
+                            <button class="btn btn-primary" onclick="window.editClientData(null); window.openModal('clientModal')">
+                                <i class="fas fa-plus"></i> إضافة عميل
+                            </button>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>الاسم</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>الهاتف</th>
+                                    <th>العنوان</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${clients.map(client => `
+                                    <tr>
+                                        <td>${client.name}</td>
+                                        <td>${client.email || '-'}</td>
+                                        <td>${client.phone || '-'}</td>
+                                        <td>${client.address || '-'}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline" onclick="window.editClientData(${JSON.stringify(client).replace(/"/g, '&quot;')}); window.openModal('clientModal')">تعديل</button>
+                                            <button class="btn btn-sm btn-danger" onclick="window.deleteClient('${client.id}')" style="margin-right: 5px;">حذف</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (currentPage === 'projects') {
+                if (projects.length === 0) {
+                    return `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <div class="empty-state-title">لا توجد مشاريع بعد</div>
+                            <p style="margin-bottom: 20px;">أضف مشروعك الأول</p>
+                            <button class="btn btn-primary" onclick="window.editProjectData(null); window.openModal('projectModal')">
+                                <i class="fas fa-plus"></i> إضافة مشروع
+                            </button>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>المشروع</th>
+                                    <th>الحالة</th>
+                                    <th>الميزانية</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${projects.map(project => `
+                                    <tr>
+                                        <td>${project.name}</td>
+                                        <td><span class="status-badge status-${project.status === 'نشط' ? 'active' : project.status === 'معلق' ? 'pending' : 'completed'}">${project.status}</span></td>
+                                        <td>${project.budget || '-'}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline" onclick="window.editProjectData(${JSON.stringify(project).replace(/"/g, '&quot;')}); window.openModal('projectModal')">تعديل</button>
+                                            <button class="btn btn-sm btn-danger" onclick="window.deleteProject('${project.id}')" style="margin-right: 5px;">حذف</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (currentPage === 'invoices') {
+                if (invoices.length === 0) {
+                    return `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">💰</div>
+                            <div class="empty-state-title">لا توجد فواتير بعد</div>
+                            <p style="margin-bottom: 20px;">أضف فاتورتك الأولى</p>
+                            <button class="btn btn-primary" onclick="window.editInvoiceData(null); window.openModal('invoiceModal')">
+                                <i class="fas fa-plus"></i> إضافة فاتورة
+                            </button>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>المشروع</th>
+                                    <th>المبلغ</th>
+                                    <th>الحالة</th>
+                                    <th>تاريخ الاستحقاق</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${invoices.map(invoice => `
+                                    <tr>
+                                        <td>${invoice.projectId}</td>
+                                        <td>${invoice.amount}</td>
+                                        <td><span class="status-badge status-${invoice.status === 'معلق' ? 'pending' : invoice.status === 'مدفوع' ? 'completed' : 'active'}">${invoice.status}</span></td>
+                                        <td>${invoice.dueDate || '-'}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline" onclick="window.editInvoiceData(${JSON.stringify(invoice).replace(/"/g, '&quot;')}); window.openModal('invoiceModal')">تعديل</button>
+                                            <button class="btn btn-sm btn-danger" onclick="window.deleteInvoice('${invoice.id}')" style="margin-right: 5px;">حذف</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (currentPage === 'quotations') {
+                if (quotations.length === 0) {
+                    return `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📄</div>
+                            <div class="empty-state-title">لا توجد عروض أسعار بعد</div>
+                            <p style="margin-bottom: 20px;">أضف عرض سعر جديد</p>
+                            <button class="btn btn-primary" onclick="window.editQuotationData(null); window.openModal('quotationModal')">
+                                <i class="fas fa-plus"></i> إضافة عرض سعر
+                            </button>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>العميل</th>
+                                    <th>الوصف</th>
+                                    <th>المبلغ</th>
+                                    <th>تاريخ الانتهاء</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${quotations.map(quotation => `
+                                    <tr>
+                                        <td>${quotation.clientId}</td>
+                                        <td>${quotation.description || '-'}</td>
+                                        <td>${quotation.amount}</td>
+                                        <td>${quotation.expiryDate || '-'}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline" onclick="window.editQuotationData(${JSON.stringify(quotation).replace(/"/g, '&quot;')}); window.openModal('quotationModal')">تعديل</button>
+                                            <button class="btn btn-sm btn-danger" onclick="window.deleteQuotation('${quotation.id}')" style="margin-right: 5px;">حذف</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+        }
+
+        // ========== GLOBAL WINDOW FUNCTIONS ==========
+        window.showPage = showPage;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.showAlert = showAlert;
+        window.handleLogin = handleLogin;
+        window.handleRegister = handleRegister;
+        window.handleLogout = handleLogout;
+        window.saveClient = saveClient;
+        window.deleteClient = deleteClient;
+        window.editClientData = editClientData;
+        window.saveProject = saveProject;
+        window.deleteProject = deleteProject;
+        window.editProjectData = editProjectData;
+        window.saveInvoice = saveInvoice;
+        window.deleteInvoice = deleteInvoice;
+        window.editInvoiceData = editInvoiceData;
+        window.saveQuotation = saveQuotation;
+        window.deleteQuotation = deleteQuotation;
+        window.editQuotationData = editQuotationData;
+        window.clientForm = clientForm;
+        window.projectForm = projectForm;
+        window.invoiceForm = invoiceForm;
+        window.quotationForm = quotationForm;
+
+        // ========== INITIAL RENDER ==========
+        render();
+    </script>
+</body>
+</html>
