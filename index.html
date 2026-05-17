@@ -681,10 +681,133 @@
         // ⚠️ استبدل هذه بـ Supabase credentials الحقيقية
         const SUPABASE_URL = 'https://fwpmvhzwjpbkhhswiils.supabase.co/';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ3cG12aHp3anBia2hoc3dpaWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5NzQ3MTcsImV4cCI6MjA5NDU1MDcxN30.gVFiJlh_bsj5jRFYlw5enuBsLf77Nfp8BAcm_P1cb9s';
-        const supabase = createClient(
+const supabase = createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
+
+// ========== AUTH INITIALIZATION ==========
+async function initializeAuth() {
+
+    try {
+
+        const {
+            data: { session },
+            error
+        } = await supabase.auth.getSession();
+
+        if (error) {
+            console.error('Session Error:', error);
+        }
+
+        if (session?.user) {
+
+            currentUser = session.user;
+
+            await fetchAllData();
+
+            console.log('✅ Session Restored');
+
+        } else {
+
+            console.log('⚠️ No Active Session');
+        }
+
+        render();
+
+    } catch (err) {
+
+        console.error('Initialize Auth Error:', err);
+
+        render();
+    }
+}
+
+// ========== AUTH LISTENER ==========
+supabase.auth.onAuthStateChange(async (event, session) => {
+
+    console.log('Auth Event:', event);
+
+    if (session?.user) {
+
+        currentUser = session.user;
+
+        await fetchAllData();
+
+    } else {
+
+        currentUser = null;
+
+        clients = [];
+        projects = [];
+        invoices = [];
+        quotations = [];
+    }
+
+    render();
+});
+);
+
+// ========== AUTH INITIALIZATION ==========
+async function initializeAuth() {
+
+    try {
+
+        const {
+            data: { session },
+            error
+        } = await supabase.auth.getSession();
+
+        if (error) {
+            console.error('Session Error:', error);
+        }
+
+        if (session?.user) {
+
+            currentUser = session.user;
+
+            await fetchAllData();
+
+            console.log('✅ Session Restored');
+
+        } else {
+
+            console.log('⚠️ No Active Session');
+        }
+
+        render();
+
+    } catch (err) {
+
+        console.error('Initialize Auth Error:', err);
+
+        render();
+    }
+}
+
+// ========== AUTH LISTENER ==========
+supabase.auth.onAuthStateChange(async (event, session) => {
+
+    console.log('Auth Event:', event);
+
+    if (session?.user) {
+
+        currentUser = session.user;
+
+        await fetchAllData();
+
+    } else {
+
+        currentUser = null;
+
+        clients = [];
+        projects = [];
+        invoices = [];
+        quotations = [];
+    }
+
+    render();
+});
 
 // ========== AUTH INITIALIZATION ==========
 async function initializeAuth() {
