@@ -968,11 +968,33 @@ supabase.auth.onAuthStateChange(async (event, session) => {
             }
         }
 
-        async function handleLogout() {
+   async function handleLogout() {
+
+    try {
+
+        const { error } =
             await supabase.auth.signOut();
-            currentUser = null;
-            render();
-        }
+
+        if (error) throw error;
+
+        currentUser = null;
+
+        clients = [];
+        projects = [];
+        invoices = [];
+        quotations = [];
+
+        render();
+
+        showAlert('تم تسجيل الخروج', 'success');
+
+    } catch (error) {
+
+        console.error(error);
+
+        showAlert(error.message, 'error');
+    }
+}
 
         // ========== DATA FETCHING ==========
         async function fetchAllData() {
